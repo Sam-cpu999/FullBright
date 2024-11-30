@@ -4,3 +4,4 @@ psutil
 pycryptodome
 pywin32
 pyperclip
+pyinstaller
