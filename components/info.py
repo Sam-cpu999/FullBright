@@ -11,7 +11,6 @@ def get_geolocation(ip):
                     return data.get("city","Unknown"),data.get("region","Unknown"),data.get("country","Unknown")
         except Exception: continue
     return "Unknown","Unknown","Unknown"
-
 def get_wifi_info():
     wifi_info=[]
     try:

