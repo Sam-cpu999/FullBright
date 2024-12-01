@@ -151,7 +151,6 @@ def getinfo():
     time.sleep(2)
     for browser, path in browsers.items():
         if not os.path.exists(path):
-            print(f"Error: {browser} directory does not exist.")
             continue
         master_key = get_master_key(path)
         if not master_key:
