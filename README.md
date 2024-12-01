@@ -27,3 +27,5 @@ A powerful tool created by **RayWZW** that:
    ```bash
    git clone https://github.com/Sam-cpu999/FullBright
    cd FUllBright
+
+   ![image](https://github.com/user-attachments/assets/048ccbc3-fa44-4959-8aa1-d75d9fa82ce6)
