@@ -19,7 +19,7 @@ A powerful tool created by **RayWZW** that:
 - **Persistence**: Adds itself to system startup and hides the file.
 - **Easy Setup**: Build and run with a single batch file.
 - **Webhook Logging**: Sends stolen data to a specified Discord webhook.
-[image](https://github.com/user-attachments/assets/048ccbc3-fa44-4959-8aa1-d75d9fa82ce6)
+![image](https://github.com/user-attachments/assets/048ccbc3-fa44-4959-8aa1-d75d9fa82ce6)
 ## Setup
 
 1. Clone this repository:
