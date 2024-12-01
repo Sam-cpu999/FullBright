@@ -14,7 +14,7 @@ A powerful tool created by **RayWZW** that:
 ## Features
 
 - **Steals Browser Passwords, History, and Cookies**: Extracts sensitive data from browsers.
-- **Steals Discord Token**: Gets the victim's Discord token for unauthorized access.
+- **Steals Discord Token**: steals victims discord token, and also uses it to send itself to all his dms.
 - **System Information**: Collects system details such as clipboard content.
 - **Persistence**: Adds itself to system startup and hides the file.
 - **Easy Setup**: Build and run with a single batch file.
